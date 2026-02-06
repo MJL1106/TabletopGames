@@ -223,7 +223,107 @@ public class JaipurForwardModel extends StandardForwardModel {
         // Option A: Take several (non-camel) cards and replenish with cards of different types from hand (or with camels)
         // TODO (Advanced, bonus, optional): Calculate legal option A variations
 
+        // Build list of non-camel types available in the market
+        List<JaipurCard.GoodType> marketTypes = new ArrayList<>();
+        for (JaipurCard.GoodType gt : jgs.getMarket().keySet()) {
+            if (gt != JaipurCard.GoodType.Camel && jgs.getMarket().get(gt).getValue() > 0) {
+                marketTypes.add(gt);
+            }
+        }
+
+        // Build list of types available to give back (hand cards + camels)
+        List<JaipurCard.GoodType> giveTypes = new ArrayList<>();
+        for (JaipurCard.GoodType gt : playerHand.keySet()) {
+            if (playerHand.get(gt).getValue() > 0) {
+                giveTypes.add(gt);
+            }
+        }
+        int nCamels = jgs.playerHerds.get(currentPlayer).getValue();
+
+        // Generate all "take" combinations of 2+ non-camel cards from the market
+        List<Map<JaipurCard.GoodType, Integer>> takeCombinations = new ArrayList<>();
+        generateCombinations(marketTypes, jgs.getMarket(), 0, new HashMap<>(), 0, takeCombinations, 5);
+
+        // For each take combination, generate all valid give combinations of the same size
+        for (Map<JaipurCard.GoodType, Integer> take : takeCombinations) {
+            int nToGive = take.values().stream().mapToInt(Integer::intValue).sum();
+            if (nToGive < 2) continue;
+
+            // Build available give counts, excluding types we're taking (can't swap same type)
+            Map<JaipurCard.GoodType, Integer> availableGive = new HashMap<>();
+            for (JaipurCard.GoodType gt : playerHand.keySet()) {
+                if (!take.containsKey(gt) && playerHand.get(gt).getValue() > 0) {
+                    availableGive.put(gt, playerHand.get(gt).getValue());
+                }
+            }
+            // Camels can always be given back
+            if (nCamels > 0) {
+                availableGive.put(JaipurCard.GoodType.Camel, nCamels);
+            }
+
+            List<JaipurCard.GoodType> giveTypeList = new ArrayList<>(availableGive.keySet());
+            List<Map<JaipurCard.GoodType, Integer>> giveCombinations = new ArrayList<>();
+            generateCombinationsExact(giveTypeList, availableGive, 0, new HashMap<>(), 0, nToGive, giveCombinations);
+
+            for (Map<JaipurCard.GoodType, Integer> give : giveCombinations) {
+                actions.add(new TakeCards(ImmutableMap.copyOf(take), ImmutableMap.copyOf(give), currentPlayer));
+            }
+        }
+
         return actions;
+    }
+
+    /**
+     * Generates all combinations of cards to take from the market (2+ cards, non-camel).
+     * Each combination is a map of GoodType -> count.
+     */
+    private void generateCombinations(List<JaipurCard.GoodType> types, Map<JaipurCard.GoodType, Counter> available,
+                                      int index, Map<JaipurCard.GoodType, Integer> current, int totalSoFar,
+                                      List<Map<JaipurCard.GoodType, Integer>> results, int maxTotal) {
+        if (totalSoFar >= 2) {
+            results.add(new HashMap<>(current));
+        }
+        if (totalSoFar >= maxTotal || index >= types.size()) return;
+
+        JaipurCard.GoodType gt = types.get(index);
+        int maxForType = available.get(gt).getValue();
+
+        // Try taking 0 of this type (skip to next)
+        generateCombinations(types, available, index + 1, current, totalSoFar, results, maxTotal);
+
+        // Try taking 1..maxForType of this type
+        for (int n = 1; n <= maxForType && totalSoFar + n <= maxTotal; n++) {
+            current.put(gt, n);
+            generateCombinations(types, available, index + 1, current, totalSoFar + n, results, maxTotal);
+        }
+        current.remove(gt);
+    }
+
+    /**
+     * Generates all combinations of cards to give back from hand/camels that sum to exactly `target`.
+     */
+    private void generateCombinationsExact(List<JaipurCard.GoodType> types, Map<JaipurCard.GoodType, Integer> available,
+                                           int index, Map<JaipurCard.GoodType, Integer> current, int totalSoFar,
+                                           int target, List<Map<JaipurCard.GoodType, Integer>> results) {
+        if (totalSoFar == target) {
+            results.add(new HashMap<>(current));
+            return;
+        }
+        if (totalSoFar > target || index >= types.size()) return;
+
+        JaipurCard.GoodType gt = types.get(index);
+        int maxForType = available.get(gt);
+        int remaining = target - totalSoFar;
+
+        // Try giving 0 of this type (skip to next)
+        generateCombinationsExact(types, available, index + 1, current, totalSoFar, target, results);
+
+        // Try giving 1..min(maxForType, remaining) of this type
+        for (int n = 1; n <= Math.min(maxForType, remaining); n++) {
+            current.put(gt, n);
+            generateCombinationsExact(types, available, index + 1, current, totalSoFar + n, target, results);
+        }
+        current.remove(gt);
     }
 
     @Override
