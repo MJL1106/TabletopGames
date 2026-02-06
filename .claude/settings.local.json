@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\Users\\\\Matthew\\\\Documents\\\\GitHub\\\\TabletopGames\" /s /b)",
+      "Bash(findstr:*)"
+    ]
+  }
+}

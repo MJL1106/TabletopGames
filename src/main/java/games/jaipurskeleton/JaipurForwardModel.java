@@ -6,6 +6,7 @@ import core.StandardForwardModel;
 import core.actions.AbstractAction;
 import core.components.Counter;
 import core.components.Deck;
+import games.jaipurskeleton.actions.SellCards;
 import games.jaipurskeleton.actions.TakeCards;
 import games.jaipurskeleton.components.JaipurCard;
 import games.jaipurskeleton.components.JaipurToken;
@@ -246,7 +247,14 @@ public class JaipurForwardModel extends StandardForwardModel {
         Map<JaipurCard.GoodType, Counter> playerHand = jgs.playerHands.get(currentPlayer);
 
         // Can sell cards from hand
-        // TODO: Follow lab 1 instructions (Section 3.1) to fill in this method here.
+        for (JaipurCard.GoodType gt : playerHand.keySet()) {
+            if (playerHand.get(gt).getValue() >= jp.goodNCardsMinimumSell.get(gt)) {
+                // Can sell this good type! We can choose any number of cards to sell of this type between minimum and how many we have
+                for (int n = jp.goodNCardsMinimumSell.get(gt); n <= playerHand.get(gt).getValue(); n++) {
+                    actions.add(new SellCards(gt, n));
+                }
+            }
+        }
 
         // Can take cards from the market, respecting hand limit
         // Option C: Take all camels, they don't count towards hand limit
