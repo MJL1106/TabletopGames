@@ -50,6 +50,20 @@ public class TakeCards extends AbstractAction {
                 // TODO 1: Refill market with cards from the draw deck, to recquried market size
                 // TODO 1: If the draw deck becomes empty when trying to draw a new card, set `triggerRoundEnd` boolean flag to true
 
+                // Add the camels from the market to the player's herd
+                jgs.getPlayerHerds().get(playerID).increment(howMany);
+                // Remove all camels from the market
+                jgs.getMarket().get(JaipurCard.GoodType.Camel).decrement(howMany);
+                // Refill market back to 5 cards from the draw deck
+                for (int i = 0; i < howMany; i++) {
+                    if (jgs.getDrawDeck().getSize() > 0) {
+                        JaipurCard card = jgs.getDrawDeck().draw();
+                        jgs.getMarket().get(card.goodType).increment();
+                    } else {
+                        triggerRoundEnd = true;
+                    }
+                }
+
                 return true;
 
             } else if (howMany == 1) {
@@ -59,6 +73,18 @@ public class TakeCards extends AbstractAction {
                 // TODO 2: Reduce the number of cards in the market of this type by 1
                 // TODO 2: Draw a new card from the draw deck (jgs.getDrawDeck().draw()) and increment the corresponding type in the market by 1
                 // TODO 2: If the draw deck becomes empty when trying to draw a new card, set `triggerRoundEnd` boolean flag to true
+
+                // Add the card to the player's hand
+                jgs.getPlayerHands().get(playerID).get(goodType).increment(1);
+                // Remove it from the market
+                jgs.getMarket().get(goodType).decrement(1);
+                // Draw a replacement card from the deck into the market
+                if (jgs.getDrawDeck().getSize() > 0) {
+                    JaipurCard card = jgs.getDrawDeck().draw();
+                    jgs.getMarket().get(card.goodType).increment();
+                } else {
+                    triggerRoundEnd = true;
+                }
 
                 return true;
             }

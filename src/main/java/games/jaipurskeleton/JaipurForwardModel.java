@@ -1,5 +1,6 @@
 package games.jaipurskeleton;
 
+import com.google.common.collect.ImmutableMap;
 import core.AbstractGameState;
 import core.CoreConstants;
 import core.StandardForwardModel;
@@ -62,14 +63,14 @@ public class JaipurForwardModel extends StandardForwardModel {
             gs.playerNGoodTokens.add(new Counter(0, 0, Integer.MAX_VALUE, "Player " + i + " n good tokens"));
             gs.playerNBonusTokens.add(new Counter(0, 0, Integer.MAX_VALUE, "Player " + i + " n bonus tokens"));
 
-            // Create herds, maximum 11 camels in the game
-            gs.playerHerds.add(new Counter(0, 0, 11, "Player " + i + " herd"));
+            // Create herds, maximum camels in the game
+            gs.playerHerds.add(new Counter(0, 0, jp.getNCardsPerType().get(JaipurCard.GoodType.Camel), "Player " + i + " herd"));
 
             Map<JaipurCard.GoodType, Counter> playerHand = new HashMap<>();
             for (JaipurCard.GoodType gt: JaipurCard.GoodType.values()) {
                 if (gt != JaipurCard.GoodType.Camel) {
-                    // Hand limit of 7
-                    playerHand.put(gt, new Counter(0, 0, 7, "Player " + i + " hand: " + gt));
+                    // Hand limit
+                    playerHand.put(gt, new Counter(0, 0, jp.getHandLimit(), "Player " + i + " hand: " + gt));
                 }
             }
             gs.playerHands.add(playerHand);
@@ -81,10 +82,10 @@ public class JaipurForwardModel extends StandardForwardModel {
 
     private void setupRound(JaipurGameState gs, JaipurParameters jp) {
         // Market initialisation
-        // Place 3 camel cards in the market
+        // Place camel cards in the market
         for (JaipurCard.GoodType gt: JaipurCard.GoodType.values()) {
             if (gt == JaipurCard.GoodType.Camel) {
-                gs.market.get(gt).setValue(3);
+                gs.market.get(gt).setValue(jp.getNInitialCamelsInMarket());
             } else {
                 gs.market.get(gt).setValue(0);
             }
@@ -92,33 +93,15 @@ public class JaipurForwardModel extends StandardForwardModel {
 
         // Create deck of cards
         gs.drawDeck.clear();
-        for (int i = 0; i < 6; i++) {  // 6 Diamond cards
-            JaipurCard card = new JaipurCard(Diamonds);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 6; i++) {  // 6 Gold cards
-            JaipurCard card = new JaipurCard(Gold);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 6; i++) {  // 6 Silver cards
-            JaipurCard card = new JaipurCard(Silver);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 8; i++) {  // 8 Cloth cards
-            JaipurCard card = new JaipurCard(JaipurCard.GoodType.Cloth);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 8; i++) {  // 8 Spice cards
-            JaipurCard card = new JaipurCard(JaipurCard.GoodType.Spice);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 10; i++) {  // 10 Leather cards
-            JaipurCard card = new JaipurCard(JaipurCard.GoodType.Leather);
-            gs.drawDeck.add(card);
-        }
-        for (int i = 0; i < 8; i++) {  // 11 Camel cards, - 3 already in the market
-            JaipurCard card = new JaipurCard(JaipurCard.GoodType.Camel);
-            gs.drawDeck.add(card);
+        for (JaipurCard.GoodType gt : jp.getNCardsPerType().keySet()) {
+            int nCards = jp.getNCardsPerType().get(gt);
+            // Camels already placed in the market are not in the deck
+            if (gt == JaipurCard.GoodType.Camel) {
+                nCards -= jp.getNInitialCamelsInMarket();
+            }
+            for (int i = 0; i < nCards; i++) {
+                gs.drawDeck.add(new JaipurCard(gt));
+            }
         }
         gs.drawDeck.shuffle(gs.getRnd());
 
@@ -135,7 +118,7 @@ public class JaipurForwardModel extends StandardForwardModel {
             }
 
             // Deal cards
-            for (int j = 0; j < 5; j++) {  // 5 cards in hand
+            for (int j = 0; j < jp.getNCardsDealPerPlayer(); j++) {
                 JaipurCard card = gs.drawDeck.draw();
 
                 // If camel, it goes into the herd instead
@@ -148,8 +131,8 @@ public class JaipurForwardModel extends StandardForwardModel {
             }
         }
 
-        // Take first 2 cards from the deck and place them face up in the market.
-        for (int i = 0; i < 2; i++) {
+        // Take cards from the deck and place them face up in the market.
+        for (int i = 0; i < jp.getNInitialMarketCardsFromDeck(); i++) {
             JaipurCard card = gs.drawDeck.draw();
             gs.market.get(card.goodType).increment();
         }
@@ -159,57 +142,14 @@ public class JaipurForwardModel extends StandardForwardModel {
         gs.goodTokens.clear();
         gs.bonusTokens.clear();
 
-        // Initialize the good tokens
-        Deck<JaipurToken> tokenDeck1 = new Deck<>("Good tokens " + Diamonds, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck1.add(new JaipurToken(Diamonds, 5));
-        tokenDeck1.add(new JaipurToken(Diamonds, 5));
-        tokenDeck1.add(new JaipurToken(Diamonds, 5));
-        tokenDeck1.add(new JaipurToken(Diamonds, 7));
-        tokenDeck1.add(new JaipurToken(Diamonds, 7));
-        gs.goodTokens.put(Diamonds, tokenDeck1);
-        Deck<JaipurToken> tokenDeck2 = new Deck<>("Good tokens " + Gold, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck2.add(new JaipurToken(Gold, 5));
-        tokenDeck2.add(new JaipurToken(Gold, 5));
-        tokenDeck2.add(new JaipurToken(Gold, 5));
-        tokenDeck2.add(new JaipurToken(Gold, 6));
-        tokenDeck2.add(new JaipurToken(Gold, 6));
-        gs.goodTokens.put(Gold, tokenDeck2);
-        Deck<JaipurToken> tokenDeck3 = new Deck<>("Good tokens " + Silver, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck3.add(new JaipurToken(Silver, 5));
-        tokenDeck3.add(new JaipurToken(Silver, 5));
-        tokenDeck3.add(new JaipurToken(Silver, 5));
-        tokenDeck3.add(new JaipurToken(Silver, 5));
-        tokenDeck3.add(new JaipurToken(Silver, 5));
-        gs.goodTokens.put(Silver, tokenDeck3);
-        Deck<JaipurToken> tokenDeck4 = new Deck<>("Good tokens " + Cloth, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck4.add(new JaipurToken(Cloth, 1));
-        tokenDeck4.add(new JaipurToken(Cloth, 1));
-        tokenDeck4.add(new JaipurToken(Cloth, 2));
-        tokenDeck4.add(new JaipurToken(Cloth, 2));
-        tokenDeck4.add(new JaipurToken(Cloth, 3));
-        tokenDeck4.add(new JaipurToken(Cloth, 3));
-        tokenDeck4.add(new JaipurToken(Cloth, 5));
-        gs.goodTokens.put(Cloth, tokenDeck4);
-        Deck<JaipurToken> tokenDeck5 = new Deck<>("Good tokens " + Spice, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck5.add(new JaipurToken(Spice, 1));
-        tokenDeck5.add(new JaipurToken(Spice, 1));
-        tokenDeck5.add(new JaipurToken(Spice, 2));
-        tokenDeck5.add(new JaipurToken(Spice, 2));
-        tokenDeck5.add(new JaipurToken(Spice, 3));
-        tokenDeck5.add(new JaipurToken(Spice, 3));
-        tokenDeck5.add(new JaipurToken(Spice, 5));
-        gs.goodTokens.put(Spice, tokenDeck5);
-        Deck<JaipurToken> tokenDeck6 = new Deck<>("Good tokens " + Leather, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 1));
-        tokenDeck6.add(new JaipurToken(Leather, 2));
-        tokenDeck6.add(new JaipurToken(Leather, 3));
-        tokenDeck6.add(new JaipurToken(Leather, 4));
-        gs.goodTokens.put(Leather, tokenDeck6);
+        // Initialize the good tokens from parameters
+        for (JaipurCard.GoodType gt : jp.getGoodTokensProgression().keySet()) {
+            Deck<JaipurToken> tokenDeck = new Deck<>("Good tokens " + gt, CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
+            for (int value : jp.getGoodTokensProgression().get(gt)) {
+                tokenDeck.add(new JaipurToken(gt, value));
+            }
+            gs.goodTokens.put(gt, tokenDeck);
+        }
 
         // Initialize the bonus tokens
         for (int nSold: jp.bonusTokensAvailable.keySet()) {
@@ -259,6 +199,10 @@ public class JaipurForwardModel extends StandardForwardModel {
         // Can take cards from the market, respecting hand limit
         // Option C: Take all camels, they don't count towards hand limit
         // TODO 1: Check how many camel cards are in the market. If more than 0, construct one TakeCards action object and add it to the `actions` ArrayList. (The `howManyPerTypeGiveFromHand` argument should be null)
+        int nCamelsInMarket = jgs.getMarket().get(JaipurCard.GoodType.Camel).getValue();
+        if (nCamelsInMarket > 0) {
+            actions.add(new TakeCards(ImmutableMap.of(JaipurCard.GoodType.Camel, nCamelsInMarket), null, currentPlayer));
+        }
 
         int nCardsInHand = 0;
         for (JaipurCard.GoodType gt: playerHand.keySet()) {
@@ -266,9 +210,14 @@ public class JaipurForwardModel extends StandardForwardModel {
         }
 
         // Check hand limit for taking non-camel cards in hand
-        if (nCardsInHand < 7) {
+        if (nCardsInHand < jp.getHandLimit()) {
             // Option B: Take a single (non-camel) card from the market
             // TODO 2: For each good type in the market, if there is at least 1 of that type (which is not a Camel), construct one TakeCards action object to take 1 of that type from the market, and add it to the `actions` ArrayList. (The `howManyPerTypeGiveFromHand` argument should be null)
+            for (JaipurCard.GoodType gt : jgs.getMarket().keySet()) {
+                if (gt != JaipurCard.GoodType.Camel && jgs.getMarket().get(gt).getValue() > 0) {
+                    actions.add(new TakeCards(ImmutableMap.of(gt, 1), null, currentPlayer));
+                }
+            }
         }
 
         // Option A: Take several (non-camel) cards and replenish with cards of different types from hand (or with camels)
@@ -330,7 +279,7 @@ public class JaipurForwardModel extends StandardForwardModel {
                 jgs.recordHistory("Round scores: " + scores);
             }
 
-            if (roundsWon == 2) {
+            if (roundsWon == jp.getNRoundsWinForGameWin()) {
                 // Game over, this player won
                 jgs.setGameStatus(CoreConstants.GameResult.GAME_END);
                 for (int i = 0; i < jgs.getNPlayers(); i++) {
