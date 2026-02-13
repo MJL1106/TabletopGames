@@ -1,0 +1,12 @@
+{
+	"nPointsMostCamels" : 10,
+	"Spice minSell" : 3,
+	"Cloth minSell" : 3,
+	"nCardsDealPerPlayer" : 6,
+	"Diamonds minSell" : 1,
+	"class" : "games.jaipurskeleton.JaipurParameters",
+	"nGoodTokensEmptyRoundEnd" : 1,
+	"nRoundsWinForGameWin" : 3,
+	"nInitialCamelsInMarket" : 1,
+	"Leather minSell" : 3
+}

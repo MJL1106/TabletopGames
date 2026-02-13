@@ -69,15 +69,16 @@ public class JaipurParameters extends TunableParameters {
         addTunableParameter("nPointsMostCamels", 5, Arrays.asList(0, 2, 5, 7, 10));
         addTunableParameter("nGoodTokensEmptyRoundEnd", 3, Arrays.asList(1, 2, 3, 4, 5));
         addTunableParameter("nRoundsWinForGameWin", 2, Arrays.asList(1, 2, 3));
-        addTunableParameter("handLimit", 7, Arrays.asList(5, 6, 7, 8, 9, 10));
-        addTunableParameter("nCardsDealPerPlayer", 5, Arrays.asList(3, 4, 5, 6, 7));
+        addTunableParameter("handLimit", 7, Arrays.asList(7, 8, 9, 10));
+        addTunableParameter("nCardsDealPerPlayer", 5, Arrays.asList(4, 5, 6, 7));
         addTunableParameter("nInitialCamelsInMarket", 3, Arrays.asList(1, 2, 3, 4, 5));
         addTunableParameter("nInitialMarketCardsFromDeck", 2, Arrays.asList(1, 2, 3, 4));
         addTunableParameter("enableSpoilage", false, Arrays.asList(false, true));
         addTunableParameter("spoilageTurnLimit", 3, Arrays.asList(2, 3, 4, 5, 6));
         for (JaipurCard.GoodType gt : goodNCardsMinimumSell.keySet()) {
-            addTunableParameter(gt.name() + " minSell", goodNCardsMinimumSell.get(gt), Arrays.asList(1, 2, 3, 4, 5));
+            addTunableParameter(gt.name() + " minSell", goodNCardsMinimumSell.get(gt), Arrays.asList(1, 2, 3));
         }
+        addTunableParameter("budget", -999);  // required by NTBEA framework
         _reset();
     }
 

@@ -1,0 +1,19 @@
+{
+  "class": "games.jaipurskeleton.JaipurParameters",
+  "nPointsMostCamels": [0, 2, 5, 7, 10],
+  "nGoodTokensEmptyRoundEnd": [1, 2, 3, 4, 5],
+  "nRoundsWinForGameWin": [1, 2, 3],
+  "handLimit": [7, 8, 9, 10],
+  "nCardsDealPerPlayer": [4, 5, 6, 7],
+  "nInitialCamelsInMarket": [1, 2, 3, 4, 5],
+  "nInitialMarketCardsFromDeck": [1, 2, 3, 4],
+  "enableSpoilage": [false, true],
+  "spoilageTurnLimit": [2, 3, 4, 5, 6],
+  "Spice minSell": [1, 2, 3],
+  "Gold minSell": [1, 2, 3],
+  "Cloth minSell": [1, 2, 3],
+  "Diamonds minSell": [1, 2, 3],
+  "Leather minSell": [1, 2, 3],
+  "Silver minSell": [1, 2, 3],
+  "budget": -999
+}

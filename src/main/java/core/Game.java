@@ -516,6 +516,9 @@ public class Game {
             System.out.println("Game Over");
         }
 
+        // Evaluate game with custom objective function (comment out after testing)
+        // System.out.println("JaipurObjective score: " + new games.jaipurskeleton.stats.JaipurObjective().evaluateGame(this));
+
         // Allow players to terminate
         for (AbstractPlayer player : players) {
             player.finalizePlayer(gameState.copy(player.getPlayerID()));

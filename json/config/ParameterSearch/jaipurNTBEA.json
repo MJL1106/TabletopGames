@@ -1,0 +1,13 @@
+{
+  "game": "Jaipur",
+  "nPlayers": 2,
+  "searchSpace": "json/SearchSpaces/JaipurGameSearchSpace.json",
+  "iterations": 500,
+  "repeats": 1,
+  "tuneGame": true,
+  "evalMethod": "games.jaipurskeleton.stats.JaipurObjective",
+  "opponent": "random",
+  "seed": 123,
+  "verbose": true,
+  "destDir": "NTBEA_Jaipur_run2"
+}

@@ -1,0 +1,10 @@
+{
+	"Silver minSell" : 3,
+	"nCardsDealPerPlayer" : 7,
+	"Diamonds minSell" : 1,
+	"class" : "games.jaipurskeleton.JaipurParameters",
+	"nGoodTokensEmptyRoundEnd" : 1,
+	"nRoundsWinForGameWin" : 1,
+	"nInitialCamelsInMarket" : 1,
+	"Leather minSell" : 2
+}

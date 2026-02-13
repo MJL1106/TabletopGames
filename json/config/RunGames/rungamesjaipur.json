@@ -6,6 +6,6 @@
   "listener": "metrics/jaipur.json",
   "verbose": true,
   "seed": 42,
-  "randomGameParams": true,
+  "randomGameParams": false,
   "playerDirectory": "json/players/jaipur"
 }
