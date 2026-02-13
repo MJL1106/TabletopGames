@@ -48,6 +48,12 @@ public class SellCards extends AbstractAction {
 
         // TODO: Follow lab 1 instructions (Section 3.1) to fill in this method here.
         jgs.getPlayerHands().get(currentPlayer).get(goodType).decrement(howMany);
+        // Remove oldest acquisition turn entries for sold cards
+        for (int i = 0; i < howMany; i++) {
+            if (!jgs.getCardAcquisitionTurns().get(currentPlayer).get(goodType).isEmpty()) {
+                jgs.getCardAcquisitionTurns().get(currentPlayer).get(goodType).remove(0);
+            }
+        }
 
         Deck<JaipurToken> goodTokens = jgs.getGoodTokens().get(goodType);
         boolean empty = goodTokens.getSize() == 0;

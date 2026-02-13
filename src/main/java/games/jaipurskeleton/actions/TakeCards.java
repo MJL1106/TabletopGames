@@ -76,6 +76,7 @@ public class TakeCards extends AbstractAction {
 
                 // Add the card to the player's hand
                 jgs.getPlayerHands().get(playerID).get(goodType).increment(1);
+                jgs.getCardAcquisitionTurns().get(playerID).get(goodType).add(jgs.getTurnCounter());
                 // Remove it from the market
                 jgs.getMarket().get(goodType).decrement(1);
                 // Draw a replacement card from the deck into the market
@@ -94,12 +95,22 @@ public class TakeCards extends AbstractAction {
         for (JaipurCard.GoodType gt: howManyPerTypeTakeFromMarket.keySet()) {
             jgs.getPlayerHands().get(playerID).get(gt).increment(howManyPerTypeTakeFromMarket.get(gt));
             jgs.getMarket().get(gt).decrement(howManyPerTypeTakeFromMarket.get(gt));
+            // Record acquisition turns for taken cards
+            for (int i = 0; i < howManyPerTypeTakeFromMarket.get(gt); i++) {
+                jgs.getCardAcquisitionTurns().get(playerID).get(gt).add(jgs.getTurnCounter());
+            }
         }
         for(JaipurCard.GoodType gt: howManyPerTypeGiveFromHand.keySet()) {
             if (gt == JaipurCard.GoodType.Camel) {
                 jgs.getPlayerHerds().get(playerID).decrement(howManyPerTypeGiveFromHand.get(gt));
             } else {
                 jgs.getPlayerHands().get(playerID).get(gt).decrement(howManyPerTypeGiveFromHand.get(gt));
+                // Remove oldest acquisition entries for given-back cards
+                for (int i = 0; i < howManyPerTypeGiveFromHand.get(gt); i++) {
+                    if (!jgs.getCardAcquisitionTurns().get(playerID).get(gt).isEmpty()) {
+                        jgs.getCardAcquisitionTurns().get(playerID).get(gt).remove(0);
+                    }
+                }
             }
             jgs.getMarket().get(gt).increment(howManyPerTypeGiveFromHand.get(gt));
         }
@@ -125,12 +136,12 @@ public class TakeCards extends AbstractAction {
         if (this == o) return true;
         if (!(o instanceof TakeCards)) return false;
         TakeCards takeCards = (TakeCards) o;
-        return playerID == takeCards.playerID && triggerRoundEnd == takeCards.triggerRoundEnd && Objects.equals(howManyPerTypeTakeFromMarket, takeCards.howManyPerTypeTakeFromMarket) && Objects.equals(howManyPerTypeGiveFromHand, takeCards.howManyPerTypeGiveFromHand);
+        return playerID == takeCards.playerID && Objects.equals(howManyPerTypeTakeFromMarket, takeCards.howManyPerTypeTakeFromMarket) && Objects.equals(howManyPerTypeGiveFromHand, takeCards.howManyPerTypeGiveFromHand);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(howManyPerTypeTakeFromMarket, howManyPerTypeGiveFromHand, playerID, triggerRoundEnd);
+        return Objects.hash(howManyPerTypeTakeFromMarket, howManyPerTypeGiveFromHand, playerID);
     }
 
     @Override

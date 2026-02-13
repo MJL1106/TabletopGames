@@ -34,6 +34,9 @@ public class JaipurGameState extends AbstractGameState {
     List<Counter> playerNRoundsWon;
     List<Counter> playerNBonusTokens, playerNGoodTokens;  // Tiebreak counts
 
+    // Spoilage: tracks the turn each card was acquired (per player, per good type)
+    List<Map<JaipurCard.GoodType, List<Integer>>> cardAcquisitionTurns;
+
     /**
      * @param gameParameters - game parameters.
      * @param nPlayers       - number of players in the game
@@ -109,6 +112,16 @@ public class JaipurGameState extends AbstractGameState {
             copy.playerNBonusTokens.add(playerNBonusTokens.get(i).copy());
             copy.playerNGoodTokens.add(playerNGoodTokens.get(i).copy());
             copy.playerHerds.add(playerHerds.get(i).copy());
+        }
+
+        // Deep copy cardAcquisitionTurns
+        copy.cardAcquisitionTurns = new ArrayList<>();
+        for (int i = 0; i < getNPlayers(); i++) {
+            Map<JaipurCard.GoodType, List<Integer>> playerAcqCopy = new HashMap<>();
+            for (JaipurCard.GoodType gt : cardAcquisitionTurns.get(i).keySet()) {
+                playerAcqCopy.put(gt, new ArrayList<>(cardAcquisitionTurns.get(i).get(gt)));
+            }
+            copy.cardAcquisitionTurns.add(playerAcqCopy);
         }
 
         copy.playerHands = new ArrayList<>();
@@ -263,6 +276,10 @@ public class JaipurGameState extends AbstractGameState {
         return playerNGoodTokens;
     }
 
+    public List<Map<JaipurCard.GoodType, List<Integer>>> getCardAcquisitionTurns() {
+        return cardAcquisitionTurns;
+    }
+
     @Override
     public boolean _equals(Object o) {
         if (this == o) return true;
@@ -278,12 +295,13 @@ public class JaipurGameState extends AbstractGameState {
                 Objects.equals(playerScores, that.playerScores) &&
                 Objects.equals(playerNRoundsWon, that.playerNRoundsWon) &&
                 Objects.equals(playerNBonusTokens, that.playerNBonusTokens) &&
-                Objects.equals(playerNGoodTokens, that.playerNGoodTokens);
+                Objects.equals(playerNGoodTokens, that.playerNGoodTokens) &&
+                Objects.equals(cardAcquisitionTurns, that.cardAcquisitionTurns);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), playerHands, playerHerds, drawDeck, market, goodTokens,
-                nGoodTokensSold, bonusTokens, playerScores, playerNRoundsWon, playerNBonusTokens, playerNGoodTokens);
+                nGoodTokensSold, bonusTokens, playerScores, playerNRoundsWon, playerNBonusTokens, playerNGoodTokens, cardAcquisitionTurns);
     }
 }

@@ -48,6 +48,7 @@ public class JaipurForwardModel extends StandardForwardModel {
         gs.drawDeck = new Deck<>("Draw deck", CoreConstants.VisibilityMode.HIDDEN_TO_ALL);
         gs.playerHands = new ArrayList<>();
         gs.playerHerds = new ArrayList<>();
+        gs.cardAcquisitionTurns = new ArrayList<>();
         gs.nGoodTokensSold = new Counter(0, 0, JaipurCard.GoodType.values().length, "N Good Tokens Fully Sold");
         gs.goodTokens = new HashMap<>();
         gs.bonusTokens = new HashMap<>();
@@ -67,13 +68,16 @@ public class JaipurForwardModel extends StandardForwardModel {
             gs.playerHerds.add(new Counter(0, 0, jp.getNCardsPerType().get(JaipurCard.GoodType.Camel), "Player " + i + " herd"));
 
             Map<JaipurCard.GoodType, Counter> playerHand = new HashMap<>();
+            Map<JaipurCard.GoodType, List<Integer>> playerAcqTurns = new HashMap<>();
             for (JaipurCard.GoodType gt: JaipurCard.GoodType.values()) {
                 if (gt != JaipurCard.GoodType.Camel) {
                     // Hand limit
                     playerHand.put(gt, new Counter(0, 0, jp.getHandLimit(), "Player " + i + " hand: " + gt));
+                    playerAcqTurns.put(gt, new ArrayList<>());
                 }
             }
             gs.playerHands.add(playerHand);
+            gs.cardAcquisitionTurns.add(playerAcqTurns);
         }
 
         // Set up the first round
@@ -114,6 +118,7 @@ public class JaipurForwardModel extends StandardForwardModel {
             for (JaipurCard.GoodType gt: JaipurCard.GoodType.values()) {
                 if (gt != JaipurCard.GoodType.Camel) {
                     playerHand.get(gt).setValue(0);
+                    gs.cardAcquisitionTurns.get(i).get(gt).clear();
                 }
             }
 
@@ -127,6 +132,7 @@ public class JaipurForwardModel extends StandardForwardModel {
                 } else {
                     // Otherwise, into the player's hand
                     playerHand.get(card.goodType).increment();
+                    gs.cardAcquisitionTurns.get(i).get(card.goodType).add(0);
                 }
             }
         }
@@ -396,6 +402,22 @@ public class JaipurForwardModel extends StandardForwardModel {
             setupRound(jgs, jp);
 
         } else {
+            // Spoilage check: discard perishable goods held too long
+            if (jp.isEnableSpoilage()) {
+                int currentPlayer = jgs.getCurrentPlayer();
+                int currentTurn = jgs.getTurnCounter();
+                JaipurCard.GoodType[] perishableTypes = {Cloth, Spice};
+                for (JaipurCard.GoodType gt : perishableTypes) {
+                    List<Integer> acqTurns = jgs.cardAcquisitionTurns.get(currentPlayer).get(gt);
+                    for (int k = acqTurns.size() - 1; k >= 0; k--) {
+                        if (currentTurn - acqTurns.get(k) >= jp.getSpoilageTurnLimit()) {
+                            acqTurns.remove(k);
+                            jgs.playerHands.get(currentPlayer).get(gt).decrement();
+                        }
+                    }
+                }
+            }
+
             // It's next player's turn
             endPlayerTurn(jgs);
         }

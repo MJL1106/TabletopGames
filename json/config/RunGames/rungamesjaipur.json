@@ -2,7 +2,10 @@
   "game": "Jaipur",
   "mode": "random",
   "nPlayers": 2,
-  "matchups": 10,
+  "matchups": 5,
   "listener": "metrics/jaipur.json",
-  "verbose": true
+  "verbose": true,
+  "seed": 42,
+  "randomGameParams": true,
+  "playerDirectory": "json/players/jaipur"
 }
